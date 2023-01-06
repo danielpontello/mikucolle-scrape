@@ -56,19 +56,29 @@ def download_images(url_list):
 
         if html is not None:
             bs = BeautifulSoup(html, "html.parser")
+
+            # image link
             image = bs.find("img", {"class": "ui_wikidb_main_img"})
-            character = bs.find("a", {"class": "ui_page_match"})
-            name = bs.find("h2", {"id": "js_wikidb_main_name"})
-
             image_url = image['src']
-            character_name = character['title']
-            filename = f"{name.text}.jpg"
-            character_dir = os.path.join(OUTPUT_FOLDER, character_name)
 
+            # character
+            character = bs.select_one('.ui_wikidb_top_pc > p:nth-child(2) > span:nth-child(1)')
+            next_elem = character.findNext()
+            if next_elem.name == "a":
+                character_name = next_elem['title'].strip()
+            else:
+                character_name = next_elem.previous_sibling.text.strip()
+
+            # card name
+            card_name = bs.find("h2", {"id": "js_wikidb_main_name"})
+
+            # output path
+            filename = f"{card_name.text.strip()}.jpg"
+            character_dir = os.path.join(OUTPUT_FOLDER, character_name)
             if not os.path.exists(character_dir):
                 os.makedirs(character_dir, exist_ok=True)
-
             output_file = os.path.join(character_dir, filename)
+
             urllib.request.urlretrieve(image_url, filename=output_file)
 
 
